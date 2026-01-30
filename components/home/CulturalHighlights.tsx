@@ -1,166 +1,263 @@
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import Feather from '@expo/vector-icons/Feather';
-import { culturalAspects } from '../../constants/Data';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Camera, Music, Palette, Theater } from 'lucide-react-native';
+import React, { useCallback } from 'react';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View
+} from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
+const CulturalHighlights = () => {
+  const { width: screenWidth } = useWindowDimensions();
 
-// Map string icon names to Feather icon names
-const getIconName = (name: string): any => {
-    switch(name) {
-        case 'music': return 'music';
-        case 'palette': return 'aperture'; // Feather doesn't have palette, using aperture as placeholder
-        case 'film': return 'film';
-        case 'camera': return 'camera';
-        default: return 'star';
-    }
-}
+  const culturalAspects = [
+    {
+      icon: Music,
+      title: 'Classical Music',
+      description: 'Rich tradition of Rabindra Sangeet and classical ragas',
+      colors: ['#3B82F6', '#8B5CF6'] as [string, string],
+    },
+    {
+      icon: Palette,
+      title: 'Traditional Arts',
+      description: 'Exquisite handicrafts, terracotta work, and paintings',
+      colors: ['#10B981', '#14B8A6'] as [string, string],
+    },
+    {
+      icon: Theater,
+      title: 'Bengali Theater',
+      description: 'Vibrant theater scene and cultural performances',
+      colors: ['#EF4444', '#EC4899'] as [string, string],
+    },
+    {
+      icon: Camera,
+      title: 'Film Heritage',
+      description: 'Birthplace of legendary filmmakers and cinema',
+      colors: ['#F59E0B', '#F97316'] as [string, string],
+    },
+  ];
 
-export default function CulturalHighlights() {
+  const renderCulturalCard = useCallback(
+    (aspect: typeof culturalAspects[0], index: number) => (
+      <Animated.View
+        key={aspect.title}
+        entering={FadeInDown.delay(index * 100).springify()}
+        style={styles.culturalCard}
+      >
+        <View style={styles.iconContainer}>
+          <LinearGradient colors={aspect.colors} style={styles.iconGradient}>
+            <aspect.icon size={32} color="#FFFFFF" />
+          </LinearGradient>
+        </View>
+
+        <Text style={styles.cardTitle}>{aspect.title}</Text>
+        <Text style={styles.cardDescription}>{aspect.description}</Text>
+      </Animated.View>
+    ),
+    []
+  );
+
   return (
-    <View style={styles.section}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Cultural <Text style={styles.highlight}>Heritage</Text></Text>
-          <Text style={styles.subtitle}>
-            West Bengal's cultural tapestry is woven with centuries of artistic excellence.
-          </Text>
-        </View>
+    <View style={styles.container}>
+      {/* Header Section */}
+      <Animated.View entering={FadeInUp.duration(600)} style={styles.header}>
+        <Text style={styles.mainTitle}>
+          Cultural <Text style={styles.accentText}>Heritage</Text>
+        </Text>
+        <Text style={styles.subtitle}>
+          West Bengal's cultural tapestry is woven with centuries of artistic
+          excellence, literary brilliance, and creative expression.
+        </Text>
+      </Animated.View>
 
-        <View style={styles.grid}>
-          {culturalAspects.map((aspect, index) => (
-            <View key={index} style={styles.gridItem}>
-              <View style={[styles.iconContainer, { backgroundColor: aspect.color }]}>
-                <Feather name={getIconName(aspect.icon)} size={24} color="white" />
-              </View>
-              <Text style={styles.itemTitle}>{aspect.title}</Text>
-              <Text style={styles.itemDescription}>{aspect.description}</Text>
-            </View>
-          ))}
-        </View>
+      {/* Cultural Grid */}
+      <View style={styles.gridContainer}>{culturalAspects.map(renderCulturalCard)}</View>
 
-        {/* Tagore Section */}
-        <LinearGradient
-            colors={['rgba(234, 88, 12, 0.1)', 'rgba(220, 38, 38, 0.1)']}
-            style={styles.tagoreSection}
+      {/* Tagore Legacy Section with Liquid Glass */}
+      <Animated.View entering={FadeIn.delay(400).springify()} style={styles.tagoreWrapper}>
+        <BlurView
+          intensity={90}
+          tint="light"
+          style={styles.tagoreGlass}
         >
-            <Text style={styles.tagoreTitle}>Tagore's Legacy</Text>
-            <Text style={styles.tagoreText}>
-                West Bengal is the birthplace of Rabindranath Tagore, the Nobel Prize-winning poet.
-            </Text>
-            <View style={styles.statsRow}>
-                <View style={styles.stat}>
-                    <Text style={styles.statValue}>2000+</Text>
-                    <Text style={styles.statLabel}>Songs</Text>
-                </View>
-                <View style={styles.stat}>
-                    <Text style={styles.statValue}>1913</Text>
-                    <Text style={styles.statLabel}>Nobel Prize</Text>
-                </View>
-            </View>
-        </LinearGradient>
+          <LinearGradient
+            colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.tagoreContent}>
+            <View style={styles.tagoreTextContainer}>
+              <Text style={styles.tagoreTitle}>Tagore's Legacy</Text>
+              <Text style={styles.tagoreDescription}>
+                West Bengal is the birthplace of Rabindranath Tagore, the Nobel
+                Prize-winning poet, whose influence on Bengali culture, music,
+                and literature continues to inspire generations.
+              </Text>
 
-      </View>
+              <View style={styles.statsContainer}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>2000+</Text>
+                  <Text style={styles.statLabel}>Songs Composed</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>1913</Text>
+                  <Text style={styles.statLabel}>Nobel Prize</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.imageContainer}>
+              <Image
+                source={{
+                  uri: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&q=80',
+                }}
+                style={styles.tagoreImage}
+                resizeMode="cover"
+              />
+            </View>
+          </View>
+        </BlurView>
+      </Animated.View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  section: {
-    paddingVertical: 40,
-    backgroundColor: '#111827', // gray-900
-  },
   container: {
-    paddingHorizontal: 20,
+    backgroundColor: '#111827',
+    paddingVertical: 40,
+    paddingHorizontal: 16,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
+  mainTitle: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 40,
   },
-  highlight: {
-    color: '#fb923c', // orange-400
+  accentText: {
+    color: '#FB923C',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#d1d5db', // gray-300
+    fontSize: 18,
+    color: '#D1D5DB',
     textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 400,
   },
-  grid: {
+  gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginBottom: 40,
   },
-  gridItem: {
-    width: (width - 60) / 2, // 2 columns with gaps
+  culturalCard: {
+    width: '48%',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 24,
+    padding: 16,
   },
   iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.3,
-    shadowRadius: 4.65,
+    shadowRadius: 8,
     elevation: 8,
   },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
+  iconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
     marginBottom: 8,
-    textAlign: 'center',
   },
-  itemDescription: {
-    fontSize: 13,
-    color: '#9ca3af', // gray-400
+  cardDescription: {
+    fontSize: 14,
+    color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 20,
   },
-  tagoreSection: {
-    marginTop: 20,
-    padding: 24,
+  tagoreWrapper: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginHorizontal: 8,
+    marginTop: 16,
+  },
+  tagoreGlass: {
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(249, 115, 22, 0.2)', // orange-500/20
+    borderColor: 'rgba(255,255,255,0.2)',
+    padding: 24,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  tagoreContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  tagoreTextContainer: {
+    flex: 1,
+    minWidth: 300,
+    marginBottom: 16,
   },
   tagoreTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fb923c',
-    marginBottom: 12,
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FB923C',
+    marginBottom: 16,
   },
-  tagoreText: {
-    fontSize: 15,
-    color: '#d1d5db',
-    lineHeight: 22,
-    marginBottom: 20,
+  tagoreDescription: {
+    fontSize: 16,
+    color: '#E5E7EB',
+    lineHeight: 24,
+    marginBottom: 24,
   },
-  statsRow: {
+  statsContainer: {
     flexDirection: 'row',
-    gap: 24,
+    gap: 32,
   },
-  stat: {
-      alignItems: 'flex-start'
+  statItem: {
+    alignItems: 'flex-start',
   },
-  statValue: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: '#fb923c',
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FB923C',
+    marginBottom: 4,
   },
   statLabel: {
-      fontSize: 12,
-      color: '#9ca3af',
-  }
+    fontSize: 14,
+    color: '#D1D5DB',
+  },
+  imageContainer: {
+    flex: 1,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  tagoreImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+    maxWidth: 300,
+  },
 });
+
+export default React.memo(CulturalHighlights);

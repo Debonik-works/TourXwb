@@ -1,148 +1,139 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
-import { heroImages } from '../../constants/Data';
-import Feather from '@expo/vector-icons/Feather';
-import { Link } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Image,
+  ImageSourcePropType,
+  StyleSheet,
+  View,
+} from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+interface HeroSectionProps {
+  heroImages: ImageSourcePropType[];
+  currentImageIndex: number;
+}
 
-export default function HeroSection() {
-  const [activeIndex, setActiveIndex] = useState(0);
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const HERO_HEIGHT = SCREEN_HEIGHT * 0.65;
 
-  const onScroll = (event: any) => {
-    const slideSize = event.nativeEvent.layoutMeasurement.width;
-    const index = event.nativeEvent.contentOffset.x / slideSize;
-    const roundIndex = Math.round(index);
-    setActiveIndex(roundIndex);
-  };
+const HeroSection: React.FC<HeroSectionProps> = ({ 
+  heroImages, 
+  currentImageIndex 
+}) => {
+  // Animation refs
+  const scaleAnim = useRef(new Animated.Value(1.1)).current;
+  const imageTransition = useRef(new Animated.Value(0)).current;
+
+  // Entry animation
+  useEffect(() => {
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 1200,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  // Image transition animation
+  useEffect(() => {
+    imageTransition.setValue(0);
+    Animated.timing(imageTransition, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  }, [currentImageIndex]);
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
+      {/* Hero Image with Ken Burns effect */}
+      <Animated.View 
+        style={[
+          styles.imageContainer,
+          {
+            opacity: imageTransition,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
       >
-        {heroImages.map((image, index) => (
-          <View key={index} style={styles.slide}>
-            <Image source={{ uri: image }} style={styles.image} />
-            <View style={styles.overlay} />
-          </View>
-        ))}
-      </ScrollView>
+        <Image
+          source={heroImages[currentImageIndex]}
+          style={styles.heroImage}
+          resizeMode="cover"
+        />
+        
+        {/* Subtle Gradient Overlay */}
+        <LinearGradient
+          colors={[
+            'rgba(0,0,0,0)',
+            'rgba(0,0,0,0.2)',
+          ] as const}
+          style={styles.gradientOverlay}
+          locations={[0, 1]}
+        />
+      </Animated.View>
 
-      <View style={styles.content}>
-        <Text style={styles.title}>Discover West Bengal</Text>
-        <Text style={styles.subtitle}>
-          Journey through centuries of rich heritage, vibrant festivals, and magnificent temples.
-        </Text>
-        <Link href="/discover" asChild>
-            <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Plan Your Journey</Text>
-            <Feather name="arrow-right" size={20} color="white" style={styles.icon} />
-            </TouchableOpacity>
-        </Link>
-      </View>
-
-      <View style={styles.pagination}>
+      {/* Pagination Indicators */}
+      <View style={styles.indicatorsContainer}>
         {heroImages.map((_, index) => (
-          <View
+          <Animated.View
             key={index}
             style={[
-              styles.dot,
-              activeIndex === index ? styles.activeDot : styles.inactiveDot,
+              styles.indicator,
+              index === currentImageIndex && styles.activeIndicator,
+              {
+                opacity: index === currentImageIndex ? 1 : 0.4,
+                transform: [
+                  { 
+                    scaleX: index === currentImageIndex ? 1.5 : 1 
+                  }
+                ],
+              },
             ]}
           />
         ))}
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    height: height * 0.6,
+    height: HERO_HEIGHT,
     position: 'relative',
+    backgroundColor: '#000',
   },
-  slide: {
-    width,
-    height: height * 0.6,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  overlay: {
+  
+  // Image Container
+  imageContainer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    overflow: 'hidden',
   },
-  content: {
+  heroImage: {
+    width: SCREEN_WIDTH,
+    height: HERO_HEIGHT,
+  },
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  
+  // Indicators
+  indicatorsContainer: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 10,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10
-  },
-  subtitle: {
-    fontSize: 16,
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 30,
-    maxWidth: 300,
-  },
-  button: {
+    bottom: 24,
     flexDirection: 'row',
-    backgroundColor: '#4f46e5',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  icon: {
-    marginLeft: 4,
-  },
-  pagination: {
-    position: 'absolute',
-    bottom: 20,
-    flexDirection: 'row',
+    gap: 8,
     alignSelf: 'center',
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
+  indicator: {
+    width: 24,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#FFF',
   },
-  activeDot: {
-    backgroundColor: 'white',
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: -2,
-  },
-  inactiveDot: {
-    backgroundColor: 'rgba(255,255,255,0.4)',
+  activeIndicator: {
+    backgroundColor: '#FFF',
   },
 });
+
+export default React.memo(HeroSection);
